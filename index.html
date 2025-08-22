@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>学习站</title>
+  <meta name="theme-color" content="#1677ff">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icon-192.png">
+  <style>
+    /* 字体：优先 STSong-Light；未安装时回退到宋体系列与系统中文字体 */
+    @font-face {
+      font-family: "STSong-Light";
+      src: local("STSong-Light"), local("STSong"), local("Songti SC Light"), local("Songti SC");
+      font-weight: 300;
+      font-style: normal;
+    }
+    :root{
+      --primary:#1677ff;
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --muted:#667085;
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:"STSong-Light","Songti SC","STSong","Noto Serif CJK SC","PingFang SC","Helvetica Neue",Arial,serif;
+      background:var(--bg);
+      color:#111;
+    }
+    header{
+      position:sticky;top:0;z-index:10;
+      background:var(--card);
+      border-bottom:1px solid #e5e7eb;
+      padding:12px 16px;
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .brand{font-size:20px; font-weight:600}
+    .progress{font-size:12px;color:var(--muted)}
+    main{padding:16px;max-width:980px;margin:0 auto}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+    .card{
+      background:var(--card);border:1px solid #e5e7eb;border-radius:var(--radius);
+      padding:14px;cursor:pointer;transition:.15s transform ease;
+    }
+    .card:hover{transform:translateY(-2px)}
+    .card .title{font-size:18px;margin-bottom:6px}
+    .card .meta{font-size:12px;color:var(--muted)}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#eef2ff;color:#334155;font-size:12px;margin-top:6px}
+    .search{display:flex;gap:8px;margin:12px 0}
+    .search input{flex:1;padding:10px 12px;border-radius:10px;border:1px solid #e5e7eb;background:#fff}
+    .btn{
+      appearance:none;border:none;background:var(--primary);color:#fff;padding:10px 14px;
+      border-radius:10px;font-size:14px;
+    }
+    .section-title{margin:14px 0 6px 0;font-weight:600}
+    .topic{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+    .topic .name{flex:1}
+    .topic .tag{font-size:12px;color:var(--muted)}
+    .topic .star{cursor:pointer}
+    .topic .done{cursor:pointer}
+    .footer-space{height:80px}
+    .fab{
+      position:fixed;left:50%;transform:translateX(-50%);
+      bottom:16px;padding:12px 18px;border-radius:999px;background:var(--primary);color:#fff;border:none
+    }
+    .muted{color:var(--muted);font-size:12px}
+    .faq{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin:12px 0}
+  </style>
+</head>
+<body>
+<header>
+  <div class="brand">学习站</div>
+  <div class="progress"><span id="pct">0%</span> 已完成</div>
+</header>
+
+<main id="root">
+  <div class="search">
+    <input id="q" placeholder="按名称搜索主题…">
+    <button class="btn" onclick="openExam()">测评</button>
+  </div>
+
+  <h3 class="section-title">学科</h3>
+  <div id="subjects" class="grid"></div>
+
+  <h3 class="section-title">数学 · 主题</h3>
+  <div id="topics"></div>
+
+  <div class="faq">
+    <div class="section-title">常见问题</div>
+    <details>
+      <summary>如何安装到 iPhone 主屏幕？</summary>
+      <div class="muted">用 Safari 打开本站 → 分享 → 添加到主屏幕。首次打开会自动缓存，可离线使用。</div>
+    </details>
+    <details>
+      <summary>如何同步或迁移学习进度？</summary>
+      <div class="muted">点击下方“导出/导入进度”按钮，得到 JSON 字符串。保存或粘贴即可完成迁移。</div>
+    </details>
+  </div>
+
+  <div class="footer-space"></div>
+  <button class="fab" onclick="exportImport()">
+    导出/导入进度
+  </button>
+</main>
+
+<script>
+  // 简易数据
+  const subjects = [
+    {name:"数学", count:161},
+    {name:"物理", count:117},
+    {name:"生物学", count:96},
+    {name:"社会科学", count:156},
+    {name:"经济学", count:54},
+    {name:"自然科学", count:257},
+    {name:"营养", count:32},
+    {name:"天文学", count:47}
+  ];
+
+  const sampleTopics = [
+    {name:"分数", tag:"数学"},
+    {name:"函数", tag:"数学"},
+    {name:"几何级数", tag:"算术"},
+    {name:"几何形状", tag:"数学"},
+    {name:"数据的图形表示", tag:"统计"},
+    {name:"联立线性方程的图形", tag:"代数"},
+    {name:"最大公约数", tag:"师"},
+    {name:"积分", tag:"结石"},
+    {name:"反三角函数", tag:"三角学"},
+    {name:"最小公倍数", tag:"乘法"},
+    {name:"长度测量", tag:"测量"},
+    {name:"极限", tag:"结石"},
+    {name:"线性方程组", tag:"代数"}
+  ];
+
+  // 状态存储
+  const KEY = "study-progress-v1";
+  const state = JSON.parse(localStorage.getItem(KEY) || '{"done":{},"star":{}}');
+
+  function save(){
+    localStorage.setItem(KEY, JSON.stringify(state));
+    render();
+  }
+
+  function toggleDone(name){
+    state.done[name] = !state.done[name];
+    save();
+  }
+  function toggleStar(name){
+    state.star[name] = !state.star[name];
+    save();
+  }
+
+  function render(){
+    // 学科网格
+    const s = document.getElementById("subjects");
+    s.innerHTML = subjects.map(x => `
+      <div class="card" onclick="scrollToTopics()">
+        <div class="title">${x.name}</div>
+        <div class="meta">${x.count} 主题</div>
+        <div class="pill">开始学习</div>
+      </div>
+    `).join("");
+
+    // 主题列表
+    const q = document.getElementById("q").value.trim();
+    const list = document.getElementById("topics");
+    const data = sampleTopics.filter(t => t.name.includes(q));
+    list.innerHTML = data.map(t => {
+      const done = !!state.done[t.name];
+      const star = !!state.star[t.name];
+      return `
+        <div class="topic">
+          <div class="name">${t.name}<div class="tag">${t.tag}</div></div>
+          <div class="star" title="收藏" onclick="toggleStar('${t.name}')">${star ? "★" : "☆"}</div>
+          <button class="btn done" onclick="toggleDone('${t.name}')">${done ? "已学完" : "标记完成"}</button>
+        </div>
+      `;
+    }).join("");
+
+    // 进度
+    const pct = Math.round(100 * Object.values(state.done).filter(Boolean).length / sampleTopics.length);
+    document.getElementById("pct").textContent = pct + "%";
+  }
+
+  function scrollToTopics(){
+    document.getElementById("topics").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  function openExam(){
+    location.href = "placement.html";
+  }
+
+  function exportImport(){
+    const raw = prompt("导出：复制下面文本；导入：粘贴你保存的进度。\n\n" + JSON.stringify(state));
+    if(!raw) return;
+    try{
+      const incoming = JSON.parse(raw);
+      if(incoming.done && incoming.star){
+        localStorage.setItem(KEY, JSON.stringify(incoming));
+        alert("导入成功");
+        render();
+      }else{
+        alert("格式不正确");
+      }
+    }catch(e){
+      alert("无效 JSON");
+    }
+  }
+
+  document.getElementById("q").addEventListener("input", render);
+  render();
+
+  // 注册 Service Worker
+  if("serviceWorker" in navigator){
+    window.addEventListener("load", ()=>{
+      navigator.serviceWorker.register("sw.js");
+    });
+  }
+</script>
+</body>
+</html>

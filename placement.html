@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>分级测评 · 学习站</title>
+  <meta name="theme-color" content="#1677ff">
+  <link rel="icon" href="assets/icon-192.png">
+  <style>
+    @font-face { font-family:"STSong-Light"; src: local("STSong-Light"), local("Songti SC Light"), local("Songti SC"); font-weight:300; }
+    body{margin:0;background:#f6f7fb;font-family:"STSong-Light","Songti SC","STSong","Noto Serif CJK SC","PingFang SC",serif;color:#111}
+    header{position:sticky;top:0;background:#fff;border-bottom:1px solid #e5e7eb;padding:12px 16px}
+    main{padding:16px;max-width:760px;margin:0 auto}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin:10px 0}
+    .btn{background:#1677ff;color:#fff;border:none;border-radius:10px;padding:10px 14px}
+    .opt{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:10px}
+    .opt button{padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff}
+    .muted{color:#667085;font-size:12px}
+  </style>
+</head>
+<body>
+<header>分级测评</header>
+<main>
+  <div class="card" id="qbox">
+    <div id="qtext" style="font-size:20px;font-weight:600;margin-bottom:8px">题目载入中…</div>
+    <div class="opt" id="opts"></div>
+    <div class="muted" id="hint" style="margin-top:8px"></div>
+  </div>
+  <button class="btn" onclick="back()">返回</button>
+</main>
+<script>
+const questions = [
+  {q:"如果你有 5 颗糖果，而朋友又给了你 4 颗，一共有多少颗？", options:["7","8","9","10","11"], a:"9", hint:"5+4=9"},
+  {q:"解方程：2x+3=9，x=？", options:["2","3","4","5"], a:"3", hint:"2x=6"},
+  {q:"极限 lim_{x→0} sin x / x 的值是？", options:["0","1","不存在"], a:"1", hint:"基本极限定理"}
+];
+let i=0,score=0;
+function render(){
+  const cur = questions[i];
+  if(!cur){ 
+    document.getElementById("qbox").innerHTML = `<div style="font-size:20px;font-weight:600;margin-bottom:8px">完成。分数 ${score}/${questions.length}</div><div class='muted'>建议：${score<=1?"从基础算术开始":"可进入代数/极限模块"}</div>`;
+    return;
+  }
+  document.getElementById("qtext").textContent = cur.q;
+  const opts = document.getElementById("opts");
+  opts.innerHTML = "";
+  cur.options.forEach(o=>{
+    const b = document.createElement("button");
+    b.textContent = o;
+    b.onclick = ()=>{
+      if(o===cur.a){ score++; document.getElementById("hint").textContent="✓ 正确"; }
+      else{ document.getElementById("hint").textContent="✗ 错误。提示："+cur.hint; }
+      i++; setTimeout(render, 600);
+    };
+    opts.appendChild(b);
+  });
+}
+function back(){ location.href="index.html"; }
+render();
+</script>
+</body>
+</html>
